@@ -1,0 +1,42 @@
+version: '3'
+services:
+  postgres:
+    container_name: postgres
+    image: postgres:11-alpine
+    environment:
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_DB=users
+    command: ["postgres", "-c", "log_statement=all"]
+    volumes:
+      - postgres-vol:/var/lib/postgresql/data
+      - ./scripts/init.sql:/docker-entrypoint-initdb.d/init.sql
+    ports:
+      - 5432:5432
+    networks:
+      - users-main
+  redis:
+    container_name: redis
+    image: redis:alpine
+    ports:
+      - 6379:6379
+    networks:
+      - users-main
+
+  users-service:
+    container_name: app
+    ports:
+      - 3000:3000
+    build:
+      context: ./
+      dockerfile: build/Dockerfile
+    restart: always
+    networks:
+      - users-main
+    volumes:
+      - ./config/configs.yaml:/app/config/config.yaml:ro
+networks:
+  users-main:
+    driver: bridge
+volumes:
+  postgres-vol:
