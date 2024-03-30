@@ -35,7 +35,7 @@ func (r *interviewRepository) GetInterviewByPublicID(publicID string) (*models.I
 		JOIN positions ON questions.position_id = positions.id
 		JOIN user_interviews ON user_interviews.position_id = positions.id
 		JOIN interviews ON interviews.id = user_interviews.interview_id
-		LEFT JOIN videos ON videos.question_public_id = questions.public_id
+		LEFT JOIN videos ON videos.interview_public_id = interviews.public_id
 		WHERE interviews.public_id = $1;
 	`
 
