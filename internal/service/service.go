@@ -15,5 +15,5 @@ type Service struct {
 }
 
 func New(repos *repository.Repository, log *zap.SugaredLogger, cfg *config.Configs) *Service {
-	return &Service{}
+	return &Service{InterviewsService: NewInterviewsService(repos, cfg, log)}
 }
