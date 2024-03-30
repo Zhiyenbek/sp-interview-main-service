@@ -66,7 +66,7 @@ CREATE TABLE IF NOT EXISTS interviews (
 CREATE TABLE IF NOT EXISTS videos (
     id SERIAL PRIMARY KEY,
     public_id UUID UNIQUE DEFAULT uuid_generate_v4() NOT NULL,
-    interviews_public_id UUID,
+    question_public_id UUID,
     path TEXT
 );
 
@@ -175,6 +175,7 @@ SELECT public_id, '
     {
       "id":0
       "question": "What is your experience with object-oriented programming?",
+      "question_public_id":
       "evaluation": "Good",
       "score": 8,
       "video_link": "https://example.com/video1",

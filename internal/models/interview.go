@@ -11,12 +11,14 @@ type InterviewResults struct {
 	RawResult []byte `json:"-"`
 }
 
-type Question struct {
+type QuestionResult struct {
 	Question       string          `json:"question"`
+	PublicID       string          `json:"public_id"`
 	QuestionType   string          `json:"question_type"`
 	Evaluation     string          `json:"evaluation"`
 	Score          int             `json:"score"`
 	VideoLink      string          `json:"video_link"`
+	VideoPublicID  string          `json:"video_public_id"`
 	EmotionResults []EmotionResult `json:"emotion_results"`
 }
 
@@ -27,6 +29,11 @@ type EmotionResult struct {
 }
 
 type Result struct {
-	Questions []Question `json:"questions"`
-	Score     int        `json:"score"`
+	Questions []QuestionResult `json:"questions"`
+	Score     int              `json:"score"`
+}
+
+type Question struct {
+	Name     string
+	PublicID string
 }

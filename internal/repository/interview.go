@@ -30,21 +30,45 @@ func (r *interviewRepository) GetInterviewByPublicID(publicID string) (*models.I
 	defer cancel()
 
 	query := `
-		SELECT public_id, results
-		FROM interviews
-		WHERE public_id = $1;
+		SELECT questions.public_id, questions.name, videos.public_id AS video_public_id, videos.path
+		FROM questions
+		JOIN positions ON questions.position_id = positions.id
+		JOIN user_interviews ON user_interviews.position_id = positions.id
+		JOIN interviews ON interviews.id = user_interviews.interview_id
+		LEFT JOIN videos ON videos.question_public_id = questions.public_id
+		WHERE interviews.public_id = $1;
 	`
 
 	result := models.InterviewResults{}
-	err := r.db.QueryRow(ctx, query, publicID).Scan(
-		&result.PublicID,
-		&result.Result,
-	)
+	rows, err := r.db.Query(ctx, query, publicID)
 	if err != nil {
 		if err == sql.ErrNoRows {
 			return nil, models.ErrInterviewNotFound
 		}
 		r.logger.Errorf("Error occurred while retrieving interview result: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		question := models.Question{}
+		var videoPublicId, videoPath string
+		err := rows.Scan(&question.PublicID, &question.Name, &videoPublicId, &videoPath)
+		if err != nil {
+			r.logger.Errorf("Error occurred while scanning rows: %v", err)
+			return nil, err
+		}
+		result.Result.Questions = append(result.Result.Questions, models.QuestionResult{
+			Question:      question.Name,
+			PublicID:      question.PublicID,
+			VideoLink:     videoPath,
+			VideoPublicID: videoPublicId,
+		})
+
+	}
+
+	if err = rows.Err(); err != nil {
+		r.logger.Errorf("Error occurred while iterating rows: %v", err)
 		return nil, err
 	}
 

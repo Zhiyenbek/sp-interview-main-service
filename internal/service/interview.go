@@ -28,16 +28,12 @@ func NewInterviewsService(repo *repository.Repository, cfg *config.Configs, logg
 }
 
 func (s *interviewsService) CreateInterviewResult(publicID string) (*models.InterviewResults, error) {
-	res, err := s.interviewRepo.GetInterviewByPublicID(publicID)
+	interview, err := s.interviewRepo.GetInterviewByPublicID(publicID)
 	if err != nil {
 		return nil, err
 	}
-	err = json.Unmarshal(res.RawResult, &res.Result)
-	if err != nil {
-		s.logger.Error(err)
-		return nil, err
-	}
-	res, err = sendDataToAPI(res, s.cfg.Video.Url)
+
+	res, err := sendDataToAPI(interview, s.cfg.Video.Url)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err

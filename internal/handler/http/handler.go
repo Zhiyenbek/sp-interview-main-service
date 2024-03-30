@@ -29,6 +29,7 @@ func New(services *service.Service, logger *zap.SugaredLogger, cfg *config.Confi
 func (h *handler) InitRoutes() *gin.Engine {
 	router := gin.Default()
 	router.Use(cors.Default())
+
 	router.POST("/interviews/:id/videos")
 	router.POST("/interview/:id/result", h.CreateInterviewResult)
 	return router
