@@ -33,6 +33,7 @@ func (h *handler) CreateInterviewResult(c *gin.Context) {
 	res, err := h.service.CreateInterviewResult(interviewID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, sendResponse(-1, nil, models.ErrInternalServer))
+		return
 	}
 	c.JSON(http.StatusCreated, sendResponse(0, res, nil))
 }
