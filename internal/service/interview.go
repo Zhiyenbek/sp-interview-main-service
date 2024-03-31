@@ -5,7 +5,9 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"net"
 	"net/http"
+	"time"
 
 	"github.com/Zhiyenbek/sp-interview-main-service/config"
 	"github.com/Zhiyenbek/sp-interview-main-service/internal/models"
@@ -38,46 +40,61 @@ func (s *interviewsService) CreateInterviewResult(publicID string) (*models.Inte
 		s.logger.Error(err)
 		return nil, err
 	}
+
 	res.RawResult, err = json.Marshal(res.Result)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
+
+	res.PublicID = publicID
 	err = s.interviewRepo.PutInterview(res)
 	if err != nil {
 		return nil, err
 	}
+	fmt.Println(res.PublicID)
+	fmt.Println(res)
 	return res, nil
 }
 
 func (s *interviewsService) GetInterviewByPublicID(publicID string) (*models.InterviewResults, error) {
 	return s.interviewRepo.GetInterviewByPublicID(publicID)
 }
+func dialTimeout(network, addr string) (net.Conn, error) {
+	return net.DialTimeout(network, addr, 600*time.Second)
+}
 
 func sendDataToAPI(data *models.InterviewResults, url string) (*models.InterviewResults, error) {
+
+	transport := http.Transport{
+		Dial: dialTimeout,
+	}
 	// Convert the InterviewResults struct to JSON
+	client := &http.Client{
+		Transport: &transport, // Set the timeout duration here
+	}
 	jsonData, err := json.Marshal(data)
 	if err != nil {
 		return nil, fmt.Errorf("failed to marshal data to JSON: %v", err)
 	}
-
 	// Create a request body with the JSON data
 	body := bytes.NewReader(jsonData)
 
 	// Send a POST request to the API endpoint
-	resp, err := http.Post(url+"/process_interview", "application/json", body)
+	resp, err := client.Post(url+"/process_interview", "application/json", body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request to API: %v", err)
 	}
 	defer resp.Body.Close()
-
+	statusCode := resp.StatusCode
 	// Check the response status code
-	if resp.StatusCode != http.StatusOK {
-		if resp.StatusCode == http.StatusUnprocessableEntity {
+	if statusCode != http.StatusOK {
+		if statusCode == http.StatusUnprocessableEntity {
 			respBody, err := ioutil.ReadAll(resp.Body)
 			if err != nil {
 				return nil, fmt.Errorf("failed to read response body: %v", respBody)
 			}
+			return nil, fmt.Errorf("API request failed with status code %d. %v", resp.StatusCode, string(respBody))
 		}
 		return nil, fmt.Errorf("API request failed with status code %d", resp.StatusCode)
 	}

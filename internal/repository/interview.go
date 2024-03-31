@@ -59,10 +59,11 @@ func (r *interviewRepository) GetInterviewByPublicID(publicID string) (*models.I
 			return nil, err
 		}
 		result.Result.Questions = append(result.Result.Questions, models.QuestionResult{
-			Question:      question.Name,
-			PublicID:      question.PublicID,
-			VideoLink:     videoPath,
-			VideoPublicID: videoPublicId,
+			Question:       question.Name,
+			PublicID:       question.PublicID,
+			VideoLink:      videoPath,
+			VideoPublicID:  videoPublicId,
+			EmotionResults: make([]models.EmotionResult, 0),
 		})
 
 	}
