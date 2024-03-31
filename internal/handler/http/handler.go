@@ -32,6 +32,7 @@ func (h *handler) InitRoutes() *gin.Engine {
 
 	router.POST("/interviews/:id/videos")
 	router.POST("/interview/:id/result", h.CreateInterviewResult)
+	router.POST("/question/:id/video", h.AddVideoToQuestion)
 	return router
 }
 

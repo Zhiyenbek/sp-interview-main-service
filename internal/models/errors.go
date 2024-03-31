@@ -11,4 +11,5 @@ var (
 	ErrPermissionDenied    = errors.New("PERMISSION_DENIED")
 	ErrCompanyNotFound     = errors.New("COMPANY_NOT_FOUND")
 	ErrInterviewNotFound   = errors.New("INTERVIEW_NOT_FOUND")
+	ErrQuestionNotFound    = errors.New("QUESTION_NOT_FOUND")
 )

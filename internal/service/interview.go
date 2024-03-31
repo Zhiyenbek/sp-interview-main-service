@@ -29,6 +29,10 @@ func NewInterviewsService(repo *repository.Repository, cfg *config.Configs, logg
 	}
 }
 
+func (s *interviewsService) AddVideoToQuestion(questionPublicID string, video string) error {
+	return s.interviewRepo.AddVideoToQuestion(questionPublicID, video)
+}
+
 func (s *interviewsService) CreateInterviewResult(publicID string) (*models.InterviewResults, error) {
 	interview, err := s.interviewRepo.GetInterviewByPublicID(publicID)
 	if err != nil {
