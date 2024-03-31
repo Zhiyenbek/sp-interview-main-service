@@ -65,7 +65,7 @@ func sendDataToAPI(data *models.InterviewResults, url string) (*models.Interview
 	body := bytes.NewReader(jsonData)
 
 	// Send a POST request to the API endpoint
-	resp, err := http.Post(url+"/proccess_interview", "application/json", body)
+	resp, err := http.Post(url+"/process_interview", "application/json", body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to send request to API: %v", err)
 	}
@@ -73,14 +73,18 @@ func sendDataToAPI(data *models.InterviewResults, url string) (*models.Interview
 
 	// Check the response status code
 	if resp.StatusCode != http.StatusOK {
+		if resp.StatusCode == http.StatusUnprocessableEntity {
+			respBody, err := ioutil.ReadAll(resp.Body)
+			if err != nil {
+				return nil, fmt.Errorf("failed to read response body: %v", respBody)
+			}
+		}
 		return nil, fmt.Errorf("API request failed with status code %d", resp.StatusCode)
 	}
-
 	respBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
-
 	var responseData models.InterviewResults
 	err = json.Unmarshal(respBody, &responseData)
 	if err != nil {

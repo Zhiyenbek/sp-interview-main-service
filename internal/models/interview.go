@@ -17,6 +17,8 @@ type QuestionResult struct {
 	QuestionType   string          `json:"question_type"`
 	Evaluation     string          `json:"evaluation"`
 	Score          int             `json:"score"`
+	Answer         string          `json:"string"`
+	Emotion        string          `json:"emotion"`
 	VideoLink      string          `json:"video_link"`
 	VideoPublicID  string          `json:"video_public_id"`
 	EmotionResults []EmotionResult `json:"emotion_results"`
