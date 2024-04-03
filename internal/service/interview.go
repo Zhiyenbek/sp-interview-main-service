@@ -20,6 +20,18 @@ type interviewsService struct {
 	logger        *zap.SugaredLogger
 	interviewRepo repository.InterviewRepository
 }
+type QuestionReq struct {
+	Question  string `json:"question"`
+	PublicID  string `json:"public_id"`
+	VideoLink string `json:"video_link"`
+}
+
+type Request struct {
+	Questions []QuestionReq `json:"questions"`
+}
+type Result struct {
+	Result models.Result `json:"result"`
+}
 
 func NewInterviewsService(repo *repository.Repository, cfg *config.Configs, logger *zap.SugaredLogger) *interviewsService {
 	return &interviewsService{
@@ -29,8 +41,8 @@ func NewInterviewsService(repo *repository.Repository, cfg *config.Configs, logg
 	}
 }
 
-func (s *interviewsService) AddVideoToQuestion(questionPublicID string, video string) error {
-	return s.interviewRepo.AddVideoToQuestion(questionPublicID, video)
+func (s *interviewsService) AddVideoToQuestion(questionPublicID, interviewPublicID, video string) error {
+	return s.interviewRepo.AddVideoToQuestion(questionPublicID, interviewPublicID, video)
 }
 
 func (s *interviewsService) CreateInterviewResult(publicID string) (*models.InterviewResults, error) {
@@ -38,27 +50,38 @@ func (s *interviewsService) CreateInterviewResult(publicID string) (*models.Inte
 	if err != nil {
 		return nil, err
 	}
+	req := Request{
+		Questions: make([]QuestionReq, 0),
+	}
 
-	res, err := sendDataToAPI(interview, s.cfg.Video.Url)
+	for _, q := range interview.Result.Questions {
+		req.Questions = append(req.Questions, QuestionReq{
+			PublicID:  q.PublicID,
+			Question:  q.Question,
+			VideoLink: q.VideoLink,
+		})
+	}
+	res, err := sendDataToAPI(req, s.cfg.Video.Url)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
+	if res != nil {
+		interview.Result = res.Result
+	}
 
-	res.RawResult, err = json.Marshal(res.Result)
+	interview.RawResult, err = json.Marshal(res.Result)
 	if err != nil {
 		s.logger.Error(err)
 		return nil, err
 	}
-
-	res.PublicID = publicID
-	err = s.interviewRepo.PutInterview(res)
+	interview.PublicID = publicID
+	err = s.interviewRepo.PutInterview(interview)
 	if err != nil {
 		return nil, err
 	}
-	fmt.Println(res.PublicID)
-	fmt.Println(res)
-	return res, nil
+
+	return interview, nil
 }
 
 func (s *interviewsService) GetInterviewByPublicID(publicID string) (*models.InterviewResults, error) {
@@ -68,8 +91,7 @@ func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, 600*time.Second)
 }
 
-func sendDataToAPI(data *models.InterviewResults, url string) (*models.InterviewResults, error) {
-
+func sendDataToAPI(data Request, url string) (*Result, error) {
 	transport := http.Transport{
 		Dial: dialTimeout,
 	}
@@ -106,7 +128,8 @@ func sendDataToAPI(data *models.InterviewResults, url string) (*models.Interview
 	if err != nil {
 		return nil, fmt.Errorf("failed to read response body: %v", err)
 	}
-	var responseData models.InterviewResults
+	fmt.Println(string(respBody))
+	var responseData Result
 	err = json.Unmarshal(respBody, &responseData)
 	if err != nil {
 		return nil, fmt.Errorf("failed to unmarshal response body: %v", err)

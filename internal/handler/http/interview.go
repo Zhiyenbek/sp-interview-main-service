@@ -30,7 +30,8 @@ import (
 //		c.JSON(http.StatusCreated, sendResponse(0, nil, nil))
 //	}
 type Video struct {
-	Video string `json:"video"`
+	Video             string `json:"video", binding:"required"`
+	InterviewPublicID string `json:"interview_public_id",binding:"required"`
 }
 
 func (h *handler) CreateInterviewResult(c *gin.Context) {
@@ -52,7 +53,7 @@ func (h *handler) AddVideoToQuestion(c *gin.Context) {
 		return
 	}
 
-	err := h.service.InterviewsService.AddVideoToQuestion(questionID, req.Video)
+	err := h.service.InterviewsService.AddVideoToQuestion(questionID, req.InterviewPublicID, req.Video)
 	if err != nil {
 		if errors.Is(err, models.ErrQuestionNotFound) {
 			c.JSON(http.StatusNotFound, sendResponse(-1, nil, models.ErrQuestionNotFound))

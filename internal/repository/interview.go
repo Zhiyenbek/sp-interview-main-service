@@ -36,8 +36,7 @@ func (r *interviewRepository) GetInterviewByPublicID(publicID string) (*models.I
 		JOIN user_interviews ON user_interviews.position_id = positions.id
 		JOIN interviews ON interviews.id = user_interviews.interview_id
 		LEFT JOIN videos ON videos.interviews_public_id = interviews.public_id
-		JOIN questions ON videos.question_public_id = questions.public_id
-		WHERE interviews.public_id = $1;
+		WHERE interviews.public_id = $1 AND videos.question_public_id = questions.public_id;
 	`
 
 	result := models.InterviewResults{}
@@ -103,32 +102,17 @@ func (r *interviewRepository) PutInterview(interview *models.InterviewResults) e
 	return nil
 }
 
-func (r *interviewRepository) AddVideoToQuestion(questionPublicID string, video string) error {
+func (r *interviewRepository) AddVideoToQuestion(questionPublicID, interviewPublicID, video string) error {
 	ctx, cancel := context.WithTimeout(context.Background(), r.cfg.TimeOut)
 	defer cancel()
-	interviewPublicID := ""
-	query := `SELECT i.public_id FROM interviews as i
-	JOIN user_interviews ui ON ui.interview_id = i.id
-	JOIN positions p ON p.id = ui.position_id
-	JOIN questions q ON q.position_id = p.id
-	WHERE q.public_id = $1
-	`
-	err := r.db.QueryRow(ctx, query, questionPublicID).Scan(&interviewPublicID)
-	if err != nil {
-		if err == sql.ErrNoRows {
-			return models.ErrQuestionNotFound
-		}
-		r.logger.Errorf("Error occurred while retrieving add video to question: %v", err)
-		return err
-	}
 
-	query = `
+	query := `
 	INSERT INTO videos (interviews_public_id, question_public_id, path)
 	VALUES ($1, $2, $3)
 	RETURNING id;
 `
 
-	_, err = r.db.Exec(ctx, query, interviewPublicID, questionPublicID, video)
+	_, err := r.db.Exec(ctx, query, interviewPublicID, questionPublicID, video)
 	if err != nil {
 		r.logger.Errorf("Error occurred while adding video to question: %v", err)
 		return err

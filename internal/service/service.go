@@ -9,7 +9,7 @@ import (
 
 type InterviewsService interface {
 	CreateInterviewResult(publicID string) (*models.InterviewResults, error)
-	AddVideoToQuestion(questionPublicID string, video string) error
+	AddVideoToQuestion(questionPublicID, interviewPublicID, video string) error
 }
 type Service struct {
 	InterviewsService
