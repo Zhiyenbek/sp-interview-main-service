@@ -30,8 +30,8 @@ import (
 //		c.JSON(http.StatusCreated, sendResponse(0, nil, nil))
 //	}
 type Video struct {
-	Video             string `json:"video", binding:"required"`
-	InterviewPublicID string `json:"interview_public_id",binding:"required"`
+	Video             string `json:"video" binding:"required"`
+	InterviewPublicID string `json:"interview_public_id" binding:"required"`
 }
 
 func (h *handler) CreateInterviewResult(c *gin.Context) {
