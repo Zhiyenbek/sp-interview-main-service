@@ -10,7 +10,7 @@ import (
 type InterviewRepository interface {
 	GetInterviewByPublicID(publicID string) (*models.InterviewResults, error)
 	PutInterview(interview *models.InterviewResults) error
-	AddVideoToQuestion(questionPublicID string, video string) error
+	AddVideoToQuestion(questionPublicID, interviewPublicID, video string) error
 }
 type Repository struct {
 	InterviewRepository
