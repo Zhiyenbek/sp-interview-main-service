@@ -74,6 +74,16 @@ func (r *interviewRepository) GetInterviewByPublicID(publicID string) (*models.I
 		return nil, err
 	}
 
+	query = `SELECT c.public_id from candidates AS c
+	JOIN user_interviews ui ON ui.candidate_id = c.id
+	JOIN interviews i ON i.id = ui.interview_id
+	WHERE i.public_id = $1 
+	GROUP BY c.public_id`
+	err = r.db.QueryRow(ctx, query, publicID).Scan(&result.CandidatePublicID)
+	if err != nil {
+		r.logger.Errorf("Error occurred while getting candidate public id: %v", err)
+		return nil, err
+	}
 	return &result, nil
 }
 func (r *interviewRepository) PutInterview(interview *models.InterviewResults) error {

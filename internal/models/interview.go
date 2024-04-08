@@ -6,9 +6,10 @@ type VideoRequest struct {
 }
 
 type InterviewResults struct {
-	PublicID  string `json:"public_id"`
-	Result    Result `json:"result"`
-	RawResult []byte `json:"-"`
+	PublicID          string `json:"public_id"`
+	CandidatePublicID string `json:"candidate_public_id"`
+	Result            Result `json:"result"`
+	RawResult         []byte `json:"-"`
 }
 
 type QuestionResult struct {
