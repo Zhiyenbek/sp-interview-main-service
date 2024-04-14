@@ -68,6 +68,9 @@ func (s *interviewsService) CreateInterviewResult(publicID string) (*models.Inte
 	}
 	if res != nil {
 		interview.Result = res.Result
+		if len(res.Result.Questions) != 0 {
+			interview.Result.Score = res.Result.Score / len(res.Result.Questions)
+		}
 	}
 
 	interview.RawResult, err = json.Marshal(res.Result)
