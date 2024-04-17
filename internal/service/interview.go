@@ -79,6 +79,7 @@ func (s *interviewsService) CreateInterviewResult(publicID string) (*models.Inte
 		return nil, err
 	}
 	interview.PublicID = publicID
+
 	err = s.interviewRepo.PutInterview(interview)
 	if err != nil {
 		return nil, err
@@ -88,8 +89,13 @@ func (s *interviewsService) CreateInterviewResult(publicID string) (*models.Inte
 }
 
 func (s *interviewsService) GetInterviewByPublicID(publicID string) (*models.InterviewResults, error) {
-	return s.interviewRepo.GetInterviewByPublicID(publicID)
+	return s.interviewRepo.GetInterview(publicID)
 }
+
+func (s *interviewsService) GetAllInterviews() ([]*models.InterviewResults, error) {
+	return s.interviewRepo.GetAllInterviews()
+}
+
 func dialTimeout(network, addr string) (net.Conn, error) {
 	return net.DialTimeout(network, addr, 600*time.Second)
 }

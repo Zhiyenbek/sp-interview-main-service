@@ -11,6 +11,8 @@ type InterviewRepository interface {
 	GetInterviewByPublicID(publicID string) (*models.InterviewResults, error)
 	PutInterview(interview *models.InterviewResults) error
 	AddVideoToQuestion(questionPublicID, interviewPublicID, video string) error
+	GetAllInterviews() ([]*models.InterviewResults, error)
+	GetInterview(publicID string) (*models.InterviewResults, error)
 }
 type Repository struct {
 	InterviewRepository

@@ -10,6 +10,8 @@ import (
 type InterviewsService interface {
 	CreateInterviewResult(publicID string) (*models.InterviewResults, error)
 	AddVideoToQuestion(questionPublicID, interviewPublicID, video string) error
+	GetAllInterviews() ([]*models.InterviewResults, error)
+	GetInterviewByPublicID(publicID string) (*models.InterviewResults, error)
 }
 type Service struct {
 	InterviewsService

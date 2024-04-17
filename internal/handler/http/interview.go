@@ -62,5 +62,28 @@ func (h *handler) AddVideoToQuestion(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, sendResponse(-1, nil, models.ErrInternalServer))
 		return
 	}
-	c.JSON(http.StatusCreated, sendResponse(0, nil, nil))
+	c.JSON(http.StatusOK, sendResponse(0, nil, nil))
+}
+
+func (h *handler) GetInterviews(c *gin.Context) {
+	res, err := h.service.InterviewsService.GetAllInterviews()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, sendResponse(-1, nil, models.ErrInternalServer))
+		return
+	}
+
+	c.JSON(http.StatusCreated, sendResponse(0, res, nil))
+}
+
+func (h *handler) GetInterviewByPublicID(c *gin.Context) {
+	publicID := c.Param("interview_public_id")
+
+	res, err := h.service.InterviewsService.GetInterviewByPublicID(publicID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, sendResponse(-1, nil, models.ErrInternalServer))
+		return
+	}
+
+	c.JSON(http.StatusOK, sendResponse(0, res, nil))
+
 }

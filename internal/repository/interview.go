@@ -130,3 +130,76 @@ func (r *interviewRepository) AddVideoToQuestion(questionPublicID, interviewPubl
 
 	return nil
 }
+
+func (r *interviewRepository) GetAllInterviews() ([]*models.InterviewResults, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), r.cfg.TimeOut)
+	defer cancel()
+
+	query := `
+		SELECT i.public_id, c.public_id, i.results
+		FROM interviews AS i
+		LEFT JOIN user_interviews ui ON ui.interview_id = i.id
+		LEFT JOIN candidates c ON c.id = ui.candidate_id
+		GROUP BY i.public_id, c.public_id, i.results
+	`
+
+	result := make([]*models.InterviewResults, 0)
+	rows, err := r.db.Query(ctx, query)
+	if err != nil {
+		r.logger.Errorf("Error occurred while retrieving interview result: %v", err)
+		return nil, err
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var err error
+		interview := &models.InterviewResults{}
+		var resultBytes []byte
+		err = rows.Scan(&interview.PublicID, &interview.CandidatePublicID, &resultBytes)
+		if err != nil {
+			r.logger.Errorf("Error occurred while scanning rows: %v", err)
+			return nil, err
+		}
+		err = json.Unmarshal(resultBytes, &interview.Result)
+		if err != nil {
+			r.logger.Errorf("Error occurred while unmarshll: %v", err)
+			return nil, err
+		}
+		result = append(result, interview)
+	}
+
+	if err = rows.Err(); err != nil {
+		r.logger.Errorf("Error occurred while iterating rows: %v", err)
+		return nil, err
+	}
+
+	return result, nil
+}
+
+func (r *interviewRepository) GetInterview(publicID string) (*models.InterviewResults, error) {
+	ctx, cancel := context.WithTimeout(context.Background(), r.cfg.TimeOut)
+	defer cancel()
+
+	query := `
+		SELECT i.public_id, c.public_id, i.results
+		FROM interviews AS i
+		LEFT JOIN user_interviews ui ON ui.interview_id = i.id
+		LEFT JOIN candidates c ON c.id = ui.candidate_id
+		GROUP BY i.public_id, c.public_id, i.results
+	`
+	var resultBytes []byte
+	interview := &models.InterviewResults{}
+	err := r.db.QueryRow(ctx, query).Scan(&interview.PublicID, &interview.CandidatePublicID, &resultBytes)
+	if err != nil {
+		r.logger.Errorf("Error occurred while retrieving interview result: %v", err)
+		return nil, err
+	}
+
+	err = json.Unmarshal(resultBytes, &interview.Result)
+	if err != nil {
+		r.logger.Errorf("Error occurred while unmarshll: %v", err)
+		return nil, err
+	}
+
+	return interview, nil
+}
